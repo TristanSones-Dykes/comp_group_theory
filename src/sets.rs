@@ -8,7 +8,8 @@ use itertools::Itertools;
 pub struct Set<T: Clone + Hash + Eq + Debug>
 {
     pub elements: Vec<T>,
-    pub superset: Option<Rc<Set<T>>>
+    pub superset: Option<Rc<Set<T>>>,
+    pub has_superset: bool
 }
 
 impl<T: Clone + Hash + Eq + Debug> Set<T>
@@ -16,7 +17,8 @@ impl<T: Clone + Hash + Eq + Debug> Set<T>
     pub fn new(vec: Option<Vec<T>>) -> Set<T> {
         Set {
             elements: vec.unwrap_or(Vec::new()).into_iter().unique().collect(),
-            superset: None
+            superset: None,
+            has_superset: false
         }
     }
 
@@ -60,14 +62,19 @@ impl<T: Clone + Hash + Eq + Debug> Set<T>
             }
 
             temp.superset = Some(superset.clone());
+            temp.has_superset = true;
             output.elements.push(temp);
         }
         output
     }
 
     pub fn is_subset(&mut self, superset: Set<T>) -> bool {
-        //checking if the references are the same
-        
+        //testing if reference is available
+        if self.has_superset {
+            if *self.superset.clone().unwrap() == superset {
+                return true;
+            }
+        }
 
         //checking elements individually
         for element in self.elements.iter() {
