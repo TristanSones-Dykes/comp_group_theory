@@ -17,7 +17,28 @@ mod tests {
     #[test]
     fn test_powerset() {
         let test_set = Set::new(Some(vec![0,1,2]));
+        let powerset = test_set.powerset();
         assert_eq!(test_set.powerset().elements.len(), 8);
+
+        for element in powerset.elements.iter() {
+            if !element.clone().is_subset(test_set.clone()) {
+                panic!();
+            }
+        }
+    }
+
+    #[test]
+    fn test_powerset_superset() {
+        let test_set = Set::new(Some(vec![0,1,2]));
+        let powerset = test_set.powerset();
+
+        for i in powerset.elements.iter() {
+            for j in powerset.elements.iter() {
+                if i.clone().superset != j.clone().superset {
+                    panic!();
+                }
+            }
+        }
     }
 
     #[test]

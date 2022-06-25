@@ -1,19 +1,22 @@
 use std::hash::Hash;
 use std::fmt::Debug;
+use std::rc::Rc;
 use bitvec::prelude::*;
 use itertools::Itertools;
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct Set<T: Clone + Hash + Eq + Debug>
 {
-    pub elements: Vec<T>
+    pub elements: Vec<T>,
+    pub superset: Option<Rc<Set<T>>>
 }
 
 impl<T: Clone + Hash + Eq + Debug> Set<T>
 {
     pub fn new(vec: Option<Vec<T>>) -> Set<T> {
         Set {
-            elements: vec.unwrap_or(Vec::new()).into_iter().unique().collect()
+            elements: vec.unwrap_or(Vec::new()).into_iter().unique().collect(),
+            superset: None
         }
     }
 
@@ -44,6 +47,7 @@ impl<T: Clone + Hash + Eq + Debug> Set<T>
 
         let mut output = Set::new(None);
         let mut temp:Set<T>;
+        let superset = Rc::new(self.clone());
 
         for n in 0..new_length {
             let mapping = n.view_bits::<Lsb0>();
@@ -55,8 +59,20 @@ impl<T: Clone + Hash + Eq + Debug> Set<T>
                 }
             }
 
+            temp.superset = Some(superset.clone());
             output.elements.push(temp);
         }
         output
+    }
+
+    pub fn is_subset(&mut self, superset: Set<T>) -> bool {
+        //checking elements individually
+        for element in self.elements.iter() {
+            if !superset.contains(element.clone()) {
+                return false;
+            }
+        }  
+
+        return true
     }
 }
