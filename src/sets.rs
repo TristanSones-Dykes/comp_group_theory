@@ -66,6 +66,9 @@ impl<T: Clone + Hash + Eq + Debug> Set<T>
     }
 
     pub fn is_subset(&mut self, superset: Set<T>) -> bool {
+        //checking if the references are the same
+        
+
         //checking elements individually
         for element in self.elements.iter() {
             if !superset.contains(element.clone()) {
