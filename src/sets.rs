@@ -8,6 +8,7 @@ use itertools::Itertools;
 pub struct Set<T: Clone + Hash + Eq + Debug>
 {
     pub elements: Vec<T>,
+
     pub superset: Option<Rc<Set<T>>>,
     pub has_superset: bool
 }
@@ -68,7 +69,12 @@ impl<T: Clone + Hash + Eq + Debug> Set<T>
         output
     }
 
-    pub fn is_subset(&mut self, superset: Set<T>) -> bool {
+    pub fn is_subset(&self, superset: Set<T>) -> bool {
+        //empty set is subset of all sets
+        if self.elements.len() == 0 {
+            return true;
+        }
+
         //testing if reference is available
         if self.has_superset {
             if *self.superset.clone().unwrap() == superset {
@@ -84,5 +90,14 @@ impl<T: Clone + Hash + Eq + Debug> Set<T>
         }  
 
         return true
+    }
+
+    pub fn add_superset(&mut self, superset: Set<T>) -> bool {
+        if !self.is_subset(superset.clone()) {
+            return false;
+        }
+        self.has_superset = true;
+        self.superset = Some(Rc::new(superset));
+        true
     }
 }

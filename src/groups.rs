@@ -1,6 +1,7 @@
 use crate::sets::Set;
 use std::hash::Hash;
 use std::fmt::Debug;
+use std::rc::Rc;
 
 use itertools::Itertools;
 
@@ -9,7 +10,10 @@ pub struct Group<T: Clone + Hash + Eq + Debug>
 {
     pub set: Set<T>,
     pub operation: fn(T, T) -> T,
-    pub identity: T
+    pub identity: T,
+
+    pub has_supergroup: bool,
+    pub supergroup: Option<Rc<Group<T>>>
 }
 
 impl<T: Clone + Hash + Eq + Debug> Group<T>
@@ -22,18 +26,37 @@ impl<T: Clone + Hash + Eq + Debug> Group<T>
             _ => Some(Group {
                 set: set,
                 operation: operation,
-                identity: identity.unwrap()
+                identity: identity.unwrap(),
+
+                has_supergroup: false,
+                supergroup: None
             })
         }
 
     }
 
-    pub fn new_trusted(set: Set<T>, operation: fn(T, T) -> T, identity: T) -> Group<T> {
-        Group { set: set, operation: operation, identity: identity }
+    pub fn new_trusted(set: Set<T>, operation: fn(T, T) -> T, identity: T, has_supergroup: bool, supergroup: Option<Rc<Group<T>>>) -> Group<T> {
+        Group { set: set, operation: operation, identity: identity, has_supergroup: has_supergroup, supergroup: supergroup }
+    }
+
+    pub fn display(&self) {
+        println!("Identity: {:?}", self.identity);
+        println!("Operation: {:?}", self.operation);
+        println!("Set: {:?}", self.set);
+    }
+
+    pub fn add_supergroup(&mut self, supergroup: Group<T>) -> bool {
+        if subgroup_test(self.clone(), supergroup.clone()) {
+            self.supergroup = Some(Rc::new(supergroup));
+            self.has_supergroup = true;
+            return true;
+        }
+
+        false
     }
 }
 
-pub fn group_test<T: Clone + Hash + Debug + Eq> (set: Set<T>, operation: fn(T, T) -> T) -> Option<T> {
+fn group_test<T: Clone + Hash + Debug + Eq> (set: Set<T>, operation: fn(T, T) -> T) -> Option<T> {
     //implementing group tests
 
     //testing for associativity, binary operation
@@ -86,4 +109,36 @@ pub fn group_test<T: Clone + Hash + Debug + Eq> (set: Set<T>, operation: fn(T, T
     }
 
     Some(identity)
+}
+
+pub fn subgroup_test<T: Clone + Hash + Debug + Eq> (group: Group<T>, supergroup: Group<T>) -> bool {
+    //they need to have the same operation
+    if group.operation != supergroup.operation {
+        return false;
+    }
+    //they need to have the same identity
+    if group.identity != supergroup.identity {
+        return false;
+    }
+    //the subgroups set needs to be a subset of the supergroup's
+    if !group.set.is_subset(supergroup.set) {
+        return false;
+    }
+    
+    return true;
+}
+
+pub trait SymmetricGroup<T: Clone + Hash + Debug + Eq> {
+    fn new(set: Set<T>, operation: fn(T, T) -> T) -> Self;
+    fn whoami(&self) -> bool;
+}
+
+impl<T: Clone + Hash + Debug + Eq> SymmetricGroup<T> for Group<T> {
+    fn new(set: Set<T>, operation: fn(T, T) -> T) -> Self {
+        Group::new(set, operation).unwrap()
+    }
+
+    fn whoami(&self) -> bool{
+        true
+    }
 }
