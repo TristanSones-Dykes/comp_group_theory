@@ -1,3 +1,4 @@
+use crate::operations::Operation;
 use crate::sets::Set;
 use std::hash::Hash;
 use std::fmt::Debug;
@@ -9,7 +10,7 @@ use itertools::Itertools;
 pub struct Group<T: Clone + Hash + Eq + Debug>
 {
     pub set: Set<T>,
-    pub operation: fn(T, T) -> T,
+    pub operation: Operation<T>,
     pub identity: T,
 
     pub has_supergroup: bool,
@@ -18,8 +19,8 @@ pub struct Group<T: Clone + Hash + Eq + Debug>
 
 impl<T: Clone + Hash + Eq + Debug> Group<T>
 {
-    pub fn new(set: Set<T>, operation: fn(T, T) -> T) -> Option<Group<T>> {
-        let identity = group_test(set.clone(), operation);
+    pub fn new(set: Set<T>, operation: Operation<T>) -> Option<Group<T>> {
+        let identity = group_test(set.clone(), operation.forwards);
 
         match identity {
             None => return None,
@@ -35,7 +36,7 @@ impl<T: Clone + Hash + Eq + Debug> Group<T>
 
     }
 
-    pub fn new_trusted(set: Set<T>, operation: fn(T, T) -> T, identity: T, has_supergroup: bool, supergroup: Option<Rc<Group<T>>>) -> Group<T> {
+    pub fn new_trusted(set: Set<T>, operation: Operation<T>, identity: T, has_supergroup: bool, supergroup: Option<Rc<Group<T>>>) -> Group<T> {
         Group { set: set, operation: operation, identity: identity, has_supergroup: has_supergroup, supergroup: supergroup }
     }
 
@@ -128,13 +129,17 @@ pub fn subgroup_test<T: Clone + Hash + Debug + Eq> (group: Group<T>, supergroup:
     return true;
 }
 
+//pub fn normality_test(subgroup, supergroup) {
+    
+//}
+
 pub trait SymmetricGroup<T: Clone + Hash + Debug + Eq> {
-    fn new(set: Set<T>, operation: fn(T, T) -> T) -> Self;
+    fn new(set: Set<T>, operation: Operation<T>) -> Self;
     fn whoami(&self) -> bool;
 }
 
 impl<T: Clone + Hash + Debug + Eq> SymmetricGroup<T> for Group<T> {
-    fn new(set: Set<T>, operation: fn(T, T) -> T) -> Self {
+    fn new(set: Set<T>, operation: Operation<T>) -> Self {
         Group::new(set, operation).unwrap()
     }
 

@@ -1,23 +1,38 @@
 mod sets;
 mod groups;
+mod operations;
 
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
+    use crate::operations::Operation;
     use crate::sets::Set;
     use crate::groups::{Group, subgroup_test, SymmetricGroup};
 
-    fn add(a: u32, b: u32) -> u32{
+    //----- functions for addition ----//
+    fn add_fn(a: i32, b: i32) -> i32{
         a + b
     }
+    fn inverse_add(a: i32) -> i32{
+        -a
+    }
 
-    fn addition_modulus_16(a: u32, b: u32) -> u32 {
+    //----- addition modulo 16 -----//
+    fn add_mod_16(a: i32, b: i32) -> i32 {
         (a + b) % 16
     }
+    fn inverse_addition_modulus_16(a: i32) -> i32 {
+        (16 - a) % 16
+    }
 
-    fn addition_modulus_2(a: u32, b: u32) -> u32 {
+    //----- addition modulo 2 ------//
+    fn add_mod_2(a: i32, b: i32) -> i32 {
         (a + b) % 2
     }
+    fn inverse_addition_modulus_2(a: i32) -> i32 {
+        (2 - a) % 2
+    }
+
 
     #[test]
     fn test_powerset() {
@@ -92,6 +107,8 @@ mod tests {
 
     #[test]
     fn test_group_new_valid() {
+        let addition_modulus_16 = Operation::new(add_mod_16, Some(inverse_addition_modulus_16));
+
         let test_set = Set::new(Some(vec![0, 4, 8, 12]));
         let test_group = Group::new(test_set, addition_modulus_16);
         assert_eq!(test_group.unwrap().identity, 0);
@@ -99,6 +116,8 @@ mod tests {
 
     #[test]
     fn test_group_new_invalid() {
+        let add: Operation<i32> = Operation::new(add_fn, Some(inverse_add));
+
         let test_set = Set::new(Some(vec![0, 1, 2]));
         match Group::new(test_set, add) {
             Some(_) => panic!(),
@@ -108,8 +127,10 @@ mod tests {
 
     #[test]
     fn test_subgroup_valid() {
+        let addition_modulus_16 = Operation::new(add_mod_16, Some(inverse_addition_modulus_16));
+
         let test_set = Set::new(Some(vec![0, 4, 8, 12]));
-        let test_group = Group::new(test_set, addition_modulus_16);
+        let test_group = Group::new(test_set, addition_modulus_16.clone());
 
         let valid_subgroup = Group::new(Set::new(Some(vec![0,8])), addition_modulus_16);
 
@@ -118,6 +139,9 @@ mod tests {
 
     #[test]
     fn test_subgroup_invalid_set_and_operator() {
+        let addition_modulus_16 = Operation::new(add_mod_16, Some(inverse_addition_modulus_16));
+        let addition_modulus_2 = Operation::new(add_mod_2, Some(inverse_addition_modulus_2));
+
         let test_set = Set::new(Some(vec![0, 4, 8, 12]));
         let test_group = Group::new(test_set, addition_modulus_16);
 
@@ -128,10 +152,26 @@ mod tests {
     }
 
     #[test]
+    fn test_valid_subgroup() {
+        let addition_modulus_16 = Operation::new(add_mod_16, Some(inverse_addition_modulus_16));
+
+        let test_set = Set::new(Some(vec![0, 4, 8, 12]));
+        let test_group = Group::new(test_set, addition_modulus_16.clone()).unwrap();
+
+        let valid_set = Set::new(Some(vec![0, 8]));
+        let mut valid_group = Group::new(valid_set, addition_modulus_16).unwrap();
+
+        assert_eq!(valid_group.add_supergroup(test_group), true);
+    }
+
+    #[test]
     fn test_symmetric_group() {
+        let addition_modulus_16 = Operation::new(add_mod_16, Some(inverse_addition_modulus_16));
+
         let test_set = Set::new(Some(vec![0,8]));
 
-        let test_symmetric_group: Group<u32> = SymmetricGroup::new(test_set, addition_modulus_16);
+        let test_symmetric_group: Group<i32> = SymmetricGroup::new(test_set, addition_modulus_16);
         assert_eq!(test_symmetric_group.whoami(), true);
     }
+
 }
