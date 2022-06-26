@@ -129,9 +129,30 @@ pub fn subgroup_test<T: Clone + Hash + Debug + Eq> (group: Group<T>, supergroup:
     return true;
 }
 
-//pub fn normality_test(subgroup, supergroup) {
-    
-//}
+pub fn normality_test<T: Clone + Hash + Debug + Eq> (subgroup: Group<T>, supergroup: Group<T>) -> bool {
+    if subgroup.has_supergroup == false {
+        return false
+    } else {
+        if *subgroup.supergroup.unwrap() != supergroup {
+            return false;
+        }
+    }
+
+    if !subgroup.operation.has_backwards {
+        panic!("Not yet implemented");
+    }
+
+    //sup * sub * sup^-1 in subset for all sup and all sub
+    for sub in subgroup.set.elements.iter() {
+        for sup in supergroup.set.elements.iter() {
+            if !subgroup.set.contains((subgroup.operation.forwards)((subgroup.operation.forwards)(sup.clone(), sub.clone()), sup.clone()))  {
+                return false;
+            }
+        }
+    }
+
+    true
+}
 
 pub trait SymmetricGroup<T: Clone + Hash + Debug + Eq> {
     fn new(set: Set<T>, operation: Operation<T>) -> Self;

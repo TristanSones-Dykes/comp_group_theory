@@ -7,7 +7,7 @@ mod tests {
     use std::rc::Rc;
     use crate::operations::Operation;
     use crate::sets::Set;
-    use crate::groups::{Group, subgroup_test, SymmetricGroup};
+    use crate::groups::{Group, subgroup_test, SymmetricGroup, normality_test};
 
     //----- functions for addition ----//
     fn add_fn(a: i32, b: i32) -> i32{
@@ -172,6 +172,20 @@ mod tests {
 
         let test_symmetric_group: Group<i32> = SymmetricGroup::new(test_set, addition_modulus_16);
         assert_eq!(test_symmetric_group.whoami(), true);
+    }
+
+    #[test]
+    fn test_valid_normality_test() {
+        let addition_modulus_16 = Operation::new(add_mod_16, Some(inverse_addition_modulus_16));
+
+        let test_set = Set::new(Some(vec![0, 4, 8, 12]));
+        let test_group = Group::new(test_set, addition_modulus_16.clone()).unwrap();
+
+        let valid_set = Set::new(Some(vec![0, 8]));
+        let mut valid_group = Group::new(valid_set, addition_modulus_16).unwrap();
+        valid_group.add_supergroup(test_group.clone());
+
+        assert_eq!(normality_test(valid_group, test_group), true);
     }
 
 }
