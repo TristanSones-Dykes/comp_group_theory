@@ -188,4 +188,18 @@ mod tests {
         assert_eq!(normality_test(valid_group, test_group), true);
     }
 
+    #[test]
+    fn test_valid_normality_no_inverse() {
+        let addition_modulus_16 = Operation::new(add_mod_16, None);
+
+        let test_set = Set::new(Some(vec![0, 4, 8, 12]));
+        let test_group = Group::new(test_set, addition_modulus_16.clone()).unwrap();
+
+        let valid_set = Set::new(Some(vec![0, 8]));
+        let mut valid_group = Group::new(valid_set, addition_modulus_16).unwrap();
+        valid_group.add_supergroup(test_group.clone());
+
+        assert_eq!(normality_test(valid_group, test_group), true);
+    }
+
 }

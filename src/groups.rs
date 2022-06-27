@@ -138,15 +138,21 @@ pub fn normality_test<T: Clone + Hash + Debug + Eq> (subgroup: Group<T>, supergr
         }
     }
 
-    if !subgroup.operation.has_backwards {
-        panic!("Not yet implemented");
-    }
-
     //sup * sub * sup^-1 in subset for all sup and all sub
     for sub in subgroup.set.elements.iter() {
         for sup in supergroup.set.elements.iter() {
-            if !subgroup.set.contains((subgroup.operation.forwards)((subgroup.operation.forwards)(sup.clone(), sub.clone()), sup.clone()))  {
-                return false;
+            if !subgroup.operation.has_backwards {
+                for test_inverse in supergroup.set.elements.iter() {
+                    if (subgroup.operation.forwards)(test_inverse.clone(), sup.clone()) == subgroup.identity {
+                        if !subgroup.set.contains((subgroup.operation.forwards)((subgroup.operation.forwards)(sup.clone(), sub.clone()), test_inverse.clone()))  {
+                            return false;
+                        }
+                    }
+                }
+            } else {
+                if !subgroup.set.contains((subgroup.operation.forwards)((subgroup.operation.forwards)(sup.clone(), sub.clone()), subgroup.operation.backwards.unwrap()(sup.clone())))  {
+                    return false;
+                }
             }
         }
     }
